@@ -20,8 +20,8 @@ module Spree
           Name: adjustment.label,
           Quantity: 1,
           Amount: {
-            currencyID: order.currency,
-            value: adjustment.amount
+            currencyID: 'USD',
+            value: zar_to_usd(adjustment.amount)
           }
         }
       end
@@ -77,8 +77,8 @@ module Spree
           Number: item.variant.sku,
           Quantity: item.quantity,
           Amount: {
-              currencyID: item.order.currency,
-              value: item.price
+              currencyID: 'USD',
+              value: zar_to_usd(item.price)
           },
           ItemCategory: "Physical"
       }
@@ -121,27 +121,27 @@ module Spree
         # This results in the order summary being simply "Current purchase"
         {
           OrderTotal: {
-            currencyID: current_order.currency,
-            value: current_order.total
+            currencyID: 'USD',
+            value: zar_to_usd(current_order.total)
           }
         }
       else
         {
           OrderTotal: {
-            currencyID: current_order.currency,
-            value: current_order.total
+            currencyID: 'USD',
+            value: zar_to_usd(current_order.total)
           },
           ItemTotal: {
-            currencyID: current_order.currency,
-            value: item_sum
+            currencyID: 'USD',
+            value: zar_to_usd(item_sum)
           },
           ShippingTotal: {
-            currencyID: current_order.currency,
-            value: shipment_sum,
+            currencyID: 'USD',
+            value: zar_to_usd(shipment_sum,)
           },
           TaxTotal: {
-            currencyID: current_order.currency,
-            value: current_order.additional_tax_total
+            currencyID: 'USD',
+            value: zar_to_usd(current_order.additional_tax_total)
           },
           ShipToAddress: address_options,
           PaymentDetailsItem: items,
@@ -172,6 +172,24 @@ module Spree
 
     def address_required?
       payment_method.preferred_solution.eql?('Sole')
+    end
+
+    def zar_to_usd(amount)
+      converted = amount.to_f/last_convertion.to_f
+      rounded = ((converted*100).round(2) / 100).round(2)
+      rounded.to_f
+    end
+
+    def last_convertion
+      @last_convertion ||= hash_currency["data"].first.last
+    end
+
+    def hash_currency
+      @hash_currency ||= JSON.load(open(currency_convertion_api_url))
+    end
+
+    def currency_convertion_api_url
+      "https://www.quandl.com/api/v1/datasets/BOE/XUDLZRD"
     end
   end
 end
