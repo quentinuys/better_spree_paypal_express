@@ -176,20 +176,12 @@ module Spree
 
     def zar_to_usd(amount)
       converted = amount.to_f/last_convertion.to_f
-      rounded = ((converted*100).round(2) / 100).round(2)
+      rounded = ((converted*100) / 100).round(2)
       rounded.to_f
     end
 
     def last_convertion
-      @last_convertion ||= hash_currency["data"].first.last
-    end
-
-    def hash_currency
-      @hash_currency ||= JSON.load(open(currency_convertion_api_url))
-    end
-
-    def currency_convertion_api_url
-      "https://www.quandl.com/api/v1/datasets/BOE/XUDLZRD"
+      @zar ||= GoogCurrency.usd_to_zar(1)
     end
   end
 end
